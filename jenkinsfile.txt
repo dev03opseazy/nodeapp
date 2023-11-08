@@ -1,0 +1,62 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Checkout') {
+            steps {
+                // Checkout the source code from your Git repository
+                script {
+                    checkout scm
+                }
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                // Install Node.js and npm
+                script {
+                    def nodejsHome = tool name: 'NodeJS', type: 'jenkins.plugins.nodejs.tools.NodeJSInstallation'
+                    def npmHome = tool name: 'NPM', type: 'jenkins.plugins.nodejs.tools.NodeJSInstallation'
+
+                    // Add Node.js and npm to PATH
+                    env.PATH = "${nodejsHome}/bin:${npmHome}/bin:${env.PATH}"
+
+                    // Install project dependencies
+                    sh 'npm install'
+                }
+            }
+        }
+
+        stage('Build') {
+            steps {
+                // Build your Node.js project
+                sh 'npm run build'
+            }
+        }
+
+        stage('Test') {
+            steps {
+                // Run tests (e.g., using Mocha, Jest, etc.)
+                sh 'npm test'
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                // Deploy your Node.js application (e.g., to a server or cloud platform)
+                sh 'npm deploy'
+            }
+        }
+    }
+
+    post {
+        success {
+            // Actions to perform if the pipeline is successful
+            echo 'Node.js project successfully built and tested!'
+        }
+        failure {
+            // Actions to perform if the pipeline fails
+            echo 'Node.js project build or test failed.'
+        }
+    }
+}
